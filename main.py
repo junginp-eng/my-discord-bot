@@ -72,7 +72,7 @@ async def on_message(message):
                 await log_channel.send(alert_msg)
             else:
                 await log_channel.send(
-                    f"📩 **[User DM]** `{message.author.name}` (ID: `{message.author.id}`):\n> {message.content}"
+                    f"📥 **[User DM]** <@{1402085438365241374}> `{message.author.name}` (ID: `{message.author.id}`):\n> {message.content}"
                 )
 
         # 1-2. Gemini AI 자동 영문 답장 생성 및 전송
