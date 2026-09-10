@@ -66,8 +66,8 @@ async def on_message(message):
         is_staff_requested = any(keyword in message.content.lower() for keyword in STAFF_KEYWORDS)
 
         # 1-1. 스태프 직접 호출 시 관리자 채널에 멘션 알림 발송
-        if log_channel and is_staff_requested and ADMIN_USER_ID:
-            alert_msg = f"🚨 **[Staff Alert!]** <@{ADMIN_USER_ID}>, user `{message.author.name}` (ID: `{message.author.id}`) is requesting human assistance!\n> **Message:** {message.content}"
+        if log_channel and is_staff_requested:
+            alert_msg = f"🚨 **[Staff Alert!]** <@1402085438365241374>, user `{message.author.name}` (ID: `{message.author.id}`) is requesting human assistance!\n> **Message:** {message.content}"
             await log_channel.send(alert_msg)
 
         # 1-2. Gemini AI 자동 영문 답장 생성 및 전송
@@ -83,8 +83,8 @@ async def on_message(message):
                 await message.channel.send("Sorry, an error occurred while processing your message. A staff member will assist you shortly.")
                 
                 # AI 처리 실패(Sorry... 출력) 시 관리자 채널에 멘션 알림 발송
-                if log_channel and ADMIN_USER_ID:
-                    error_msg = f"🚨 **[Error Alert!]** <@{ADMIN_USER_ID}>, AI failed to reply to user `{message.author.name}` (ID: `{message.author.id}`)!\n> **Message:** {message.content}\n> **Error:** `{e}`"
+                if log_channel:
+                    error_msg = f"🚨 **[Error Alert!]** <@1402085438365241374>, AI failed to reply to user `{message.author.name}` (ID: `{message.author.id}`)!\n> **Message:** {message.content}\n> **Error:** `{e}`"
                     await log_channel.send(error_msg)
 
     # -------------------------------------------------------------
