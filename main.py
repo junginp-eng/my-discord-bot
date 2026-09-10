@@ -36,7 +36,7 @@ All communication with users MUST be in fluent and natural English.
 """
 
 model = genai.GenerativeModel(
-    model_name="gemini-3.6-flash",
+    model_name="gemini-1.5-flash",
     system_instruction=SYSTEM_INSTRUCTION
 )
 
