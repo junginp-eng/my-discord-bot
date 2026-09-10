@@ -61,19 +61,14 @@ async def on_message(message):
     # -------------------------------------------------------------
     if isinstance(message.channel, discord.DMChannel):
         log_channel = bot.get_channel(LOG_CHANNEL_ID) if LOG_CHANNEL_ID != 0 else None
-        
-        # 담당자 호출 키워드가 포함되어 있는지 확인
+
+        # 담당자 호출 키워드 확인
         is_staff_requested = any(keyword in message.content.lower() for keyword in STAFF_KEYWORDS)
 
-       # 1-1. 관리자 채널에 로그 및 알림 발송
-        if log_channel:
-            if is_staff_requested and ADMIN_USER_ID:
-                alert_msg = f"🚨 **[Staff Alert!]** <@{ADMIN_USER_ID}>, user `{message.author.name}` (ID: `{message.author.id}`) is requesting human assistance!\n> **Message:** {message.content}"
-                await log_channel.send(alert_msg)
-            # else:
-            #     await log_channel.send(
-            #         f"📬 **[User DM]** <@{1402085438365241374}> `{message.author.name}` (ID: `{message.author.id}`):\n {message.content}"
-            #     )
+        # 1-1. 스태프 직접 호출 시 관리자 채널에 멘션 알림 발송
+        if log_channel and is_staff_requested and ADMIN_USER_ID:
+            alert_msg = f"🚨 **[Staff Alert!]** <@{ADMIN_USER_ID}>, user `{message.author.name}` (ID: `{message.author.id}`) is requesting human assistance!\n> **Message:** {message.content}"
+            await log_channel.send(alert_msg)
 
         # 1-2. Gemini AI 자동 영문 답장 생성 및 전송
         async with message.channel.typing():
@@ -83,13 +78,14 @@ async def on_message(message):
 
                 await message.channel.send(ai_reply)
 
-                # 관리자 채널에 AI가 답장한 내용 기록 (주석 처리로 알림 끔)
-                # if log_channel:
-                #     await log_channel.send(f"🤖 **[AI Reply]** -> `{message.author.name}`:\n {ai_reply}")
-
             except Exception as e:
                 print(f"❌ Gemini API Error: {e}")
                 await message.channel.send("Sorry, an error occurred while processing your message. A staff member will assist you shortly.")
+                
+                # AI 처리 실패(Sorry... 출력) 시 관리자 채널에 멘션 알림 발송
+                if log_channel and ADMIN_USER_ID:
+                    error_msg = f"🚨 **[Error Alert!]** <@{ADMIN_USER_ID}>, AI failed to reply to user `{message.author.name}` (ID: `{message.author.id}`)!\n> **Message:** {message.content}\n> **Error:** `{e}`"
+                    await log_channel.send(error_msg)
 
     # -------------------------------------------------------------
     # CASE 2: 관리자가 서버 채널에서 수동으로 답장하는 경우 (!reply 유저ID 할말)
