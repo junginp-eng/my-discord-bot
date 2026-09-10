@@ -65,15 +65,15 @@ async def on_message(message):
         # 담당자 호출 키워드가 포함되어 있는지 확인
         is_staff_requested = any(keyword in message.content.lower() for keyword in STAFF_KEYWORDS)
 
-        # 1-1. 관리자 채널에 로그 및 알림 발송
+       # 1-1. 관리자 채널에 로그 및 알림 발송
         if log_channel:
             if is_staff_requested and ADMIN_USER_ID:
                 alert_msg = f"🚨 **[Staff Alert!]** <@{ADMIN_USER_ID}>, user `{message.author.name}` (ID: `{message.author.id}`) is requesting human assistance!\n> **Message:** {message.content}"
                 await log_channel.send(alert_msg)
-            else:
-                await log_channel.send(
-                    f"📥 **[User DM]** <@{1402085438365241374}> `{message.author.name}` (ID: `{message.author.id}`):\n> {message.content}"
-                )
+            # else:
+            #     await log_channel.send(
+            #         f"📬 **[User DM]** <@{1402085438365241374}> `{message.author.name}` (ID: `{message.author.id}`):\n {message.content}"
+            #     )
 
         # 1-2. Gemini AI 자동 영문 답장 생성 및 전송
         async with message.channel.typing():
@@ -83,9 +83,9 @@ async def on_message(message):
 
                 await message.channel.send(ai_reply)
 
-                # 관리자 채널에 AI가 답장한 내용 기록
-                if log_channel:
-                    await log_channel.send(f"🤖 **[AI Reply]** -> `{message.author.name}`:\n> {ai_reply}")
+                # 관리자 채널에 AI가 답장한 내용 기록 (주석 처리로 알림 끔)
+                # if log_channel:
+                #     await log_channel.send(f"🤖 **[AI Reply]** -> `{message.author.name}`:\n {ai_reply}")
 
             except Exception as e:
                 print(f"❌ Gemini API Error: {e}")
