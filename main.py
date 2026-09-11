@@ -56,37 +56,42 @@ async def on_message(message):
     if message.author == bot.user:
         return
 
-    # -------------------------------------------------------------
-    # CASE 1: 유저가 '봇 계정'으로 1:1 DM을 보낸 경우
-    # -------------------------------------------------------------
-    if isinstance(message.channel, discord.DMChannel):
-        log_channel = bot.get_channel(LOG_CHANNEL_ID) if LOG_CHANNEL_ID != 0 else None
+# --------------------------------------------------
+# CASE 1: 유저가 '봇 계정'으로 1:1 DM을 보낸 경우
+# --------------------------------------------------
+if isinstance(message.channel, discord.DMChannel):
+    log_channel = bot.get_channel(LOG_CHANNEL_ID) if LOG_CHANNEL_ID != 0 else None
 
-        # 담당자 호출 키워드 확인
-        is_staff_requested = any(keyword in message.content.lower() for keyword in STAFF_KEYWORDS)
+    # 담당자 호출 키워드 확인
+    is_staff_requested = any(keyword in message.content.lower() for keyword in STAFF_KEYWORDS)
 
-        # 1-1. 스태프 직접 호출 시 관리자 채널에 멘션 알림 발송
-        if log_channel and is_staff_requested:
-            alert_msg = f"🚨 **[Staff Alert!]** <@1402085438365241374>, user `{message.author.name}` (ID: `{message.author.id}`) is requesting human assistance!\n> **Message:** {message.content}"
-            await log_channel.send(alert_msg)
+    # 1-1. 스태프 직접 호출 시 관리자 채널에 멘션 알림 발송
+    if log_channel and is_staff_requested:
+        alert_msg = f"🚨 **[Staff Alert!]** <@1402085438365241374>, user `{message.author.name}` (ID: `{message.author.id}`) is requesting human assistance!\n**Message:** {message.content}"
+        await log_channel.send(alert_msg)
 
-        # 1-2. Gemini AI 자동 영문 답장 생성 및 전송
-        async with message.channel.typing():
-            try:
-                response = model.generate_content(message.content)
-                ai_reply = response.text
+    # 1-2. Gemini AI 자동 영문 답장 생성 및 전송
+    async with message.channel.typing():
+        try:
+            response = model.generate_content(message.content)
+            ai_reply = response.text
 
-                await message.channel.send(ai_reply)
+            await message.channel.send(ai_reply)
 
-            except Exception as e:
-                print(f"❌ Gemini API Error: {e}")
-                await message.channel.send("Sorry, an error occurred while processing your message. A staff member will assist you shortly.")
-                
-                # AI 처리 실패(Sorry... 출력) 시 관리자 채널에 멘션 알림 발송
-                if log_channel:
-                    error_msg = f"🚨 **[Error Alert!]** <@1402085438365241374>, AI failed to reply to user `{message.author.name}` (ID: `{message.author.id}`)!\n> **Message:** {message.content}\n> **Error:** `{e}`"
-                    await log_channel.send(error_msg)
+            # AI가 스태프/담당자 관련 내용을 답변에 포함한 경우 추가 알림
+            staff_keywords_in_reply = ["staff", "human", "assist", "support", "agent", "contact"]
+            if log_channel and any(k in ai_reply.lower() for k in staff_keywords_in_reply):
+                notice_msg = f"🚨 **[Staff Notice!]** <@1402085438365241374>, AI replied about staff assistance to user `{message.author.name}` (ID: `{message.author.id}`)!\n**User Message:** {message.content}\n**AI Reply:** {ai_reply}"
+                await log_channel.send(notice_msg)
 
+        except Exception as e:
+            print(f"❌ Gemini API Error: {e}")
+            await message.channel.send("Sorry, an error occurred while processing your message. A staff member will assist you shortly.")
+
+            # AI 처리 실패(Sorry... 출력) 시 관리자 채널에 멘션 알림 발송
+            if log_channel:
+                error_msg = f"🚨 **[Error Alert!]** <@1402085438365241374>, AI failed to reply to user `{message.author.name}` (ID: `{message.author.id}`)!\n**Message:** {message.content}\n**Error:** `{e}`"
+                await log_channel.send(error_msg)
     # -------------------------------------------------------------
     # CASE 2: 관리자가 서버 채널에서 수동으로 답장하는 경우 (!reply 유저ID 할말)
     # -------------------------------------------------------------
