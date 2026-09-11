@@ -95,7 +95,7 @@ if isinstance(message.channel, discord.DMChannel):
     # -------------------------------------------------------------
     # CASE 2: 관리자가 서버 채널에서 수동으로 답장하는 경우 (!reply 유저ID 할말)
     # -------------------------------------------------------------
-    if message.channel.id == LOG_CHANNEL_ID and message.content.startswith("!reply"):
+    elif message.channel.id == LOG_CHANNEL_ID and message.content.startswith("!reply"):
         try:
             parts = message.content.split(" ", 2)
             if len(parts) < 3:
